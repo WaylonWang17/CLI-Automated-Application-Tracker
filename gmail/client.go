@@ -14,6 +14,23 @@ import (
 	"google.golang.org/api/option"
 )
 
+var user = "me"
+
+
+func getApplications(srv *gmail.Service, user string) (*gmail.ListMessagesResponse, error) {
+	// pageToken := ""
+	query := `after:2024/8/01 ("thank you for applying" OR "we received your application" OR "application submitted" OR "thank you for your interest")`
+	// allMessages := []*gmail.Message{}
+	includeSpamTrash := false
+
+	req, err := srv.Users.Messages.List(user).Q(query).IncludeSpamTrash(includeSpamTrash).Do()
+
+	if err != nil {
+		return nil, fmt.Errorf("list messages: %w", err)
+	}
+	return req, nil
+}
+
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
@@ -53,8 +70,8 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 		return nil, err
 	}
 	defer f.Close()
-	tok := &oauth2.Token{}
-	err = json.NewDecoder(f).Decode(tok)
+	tok := &oauth2.Token{}               //creating a struct to hold token data
+	err = json.NewDecoder(f).Decode(tok) //decoding the json data in the file and putting it in the tok struct
 	return tok, err
 }
 
@@ -77,28 +94,38 @@ func main() {
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, gmail.GmailReadonlyScope)
+	config, err := google.ConfigFromJSON(b, gmail.GmailReadonlyScope) //builds the config for oauth
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
-	client := getClient(config)
+	client := getClient(config) //connects to gmail without manually handling tokens and headers (client is the middleman between api and i)
 
-	srv, err := gmail.NewService(ctx, option.WithHTTPClient(client))
+	srv, err := gmail.NewService(ctx, option.WithHTTPClient(client)) //srv is now gmail service instant allowing us to call apis
 	if err != nil {
 		log.Fatalf("Unable to retrieve Gmail client: %v", err)
 	}
 
-	user := "me"
-	r, err := srv.Users.Labels.List(user).Do()
+	applications, err := getApplications(srv, user)
 	if err != nil {
-		log.Fatalf("Unable to retrieve labels: %v", err)
+		log.Fatalf("Unable to get applications: %v", err)
 	}
-	if len(r.Labels) == 0 {
-		fmt.Println("No labels found.")
-		return
-	}
-	fmt.Println("Labels:")
-	for _, l := range r.Labels {
-		fmt.Printf("- %s\n", l.Name)
-	}
+	
+	// Print out each application's subject and date
+    for _, msg := range applications.Messages {
+        msgDetail, err := srv.Users.Messages.Get(user, msg.Id).Format("full").Do()
+        if err != nil {
+            fmt.Printf("Could not fetch message %s: %v\n", msg.Id, err)
+            continue
+        }
+        var subject string
+        for _, header := range msgDetail.Payload.Headers {
+            if header.Name == "Subject" {
+                subject = header.Value
+                break
+            }
+        }
+        date := msgDetail.InternalDate / 1000 // milliseconds to seconds
+        fmt.Printf("Subject: %s | Date: %v | ID: %s\n", subject, date, msg.Id)
+    }
 }
+
