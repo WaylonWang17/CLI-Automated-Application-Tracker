@@ -17,18 +17,56 @@ import (
 var user = "me"
 
 
-func getApplications(srv *gmail.Service, user string) (*gmail.ListMessagesResponse, error) {
-	// pageToken := ""
-	query := `after:2024/8/01 ("thank you for applying" OR "we received your application" OR "application submitted" OR "thank you for your interest")`
-	// allMessages := []*gmail.Message{}
+func getApplications(srv *gmail.Service, user string) error {
+	pageToken := ""
+	query := `after:2024/8/01 ("thank you for applying" OR "we received your application" OR "application submitted" OR "thank you for your interest" OR "we have received your application" OR "your application has been received" OR "we appreciate your interest" OR "application confirmation" OR "we have received your resume" OR "your application is being reviewed" OR "we are reviewing your application" OR "we have your application" OR "your application has been submitted" OR "thank you for your application" OR "we have received your job application") -in:chats -is:sent`
 	includeSpamTrash := false
+	count := 0
 
-	req, err := srv.Users.Messages.List(user).Q(query).IncludeSpamTrash(includeSpamTrash).Do()
+	for {
+		req := srv.Users.Messages.List(user).Q(query).IncludeSpamTrash(includeSpamTrash)
+		if pageToken != "" {
+			req.PageToken(pageToken)
+		}
 
-	if err != nil {
-		return nil, fmt.Errorf("list messages: %w", err)
+		res, err := req.Do()
+		if err != nil {
+			return fmt.Errorf("list messages: %w", err)
+		}
+
+		for _, msg := range res.Messages {
+			msgDetail, err := srv.Users.Messages.Get(user, msg.Id).Format("full").Do()
+			if err != nil {
+				fmt.Printf("⚠️ Could not fetch message %s: %v\n", msg.Id, err)
+				continue
+			}
+
+			var subject, from, date string
+			for _, header := range msgDetail.Payload.Headers {
+				switch header.Name {
+				case "Subject":
+					subject = header.Value
+				case "From":
+					from = header.Value
+				case "Date":
+					date = header.Value
+				}
+			}
+
+			fmt.Printf("-----\nSubject: %s\nFrom: %s\nDate: %s\n", subject, from, date)
+
+			// Print snippet (short preview of the message)
+			fmt.Printf("Snippet: %s\n", msgDetail.Snippet)
+			count++
+		}
+
+		if res.NextPageToken == "" {
+			break
+		}
+		pageToken = res.NextPageToken
 	}
-	return req, nil
+	fmt.Printf("📬 Total job-related emails since Dec 1, 2024: %d\n", count)
+	return nil
 }
 
 // Retrieve a token, saves the token, then returns the generated client.
@@ -105,27 +143,6 @@ func main() {
 		log.Fatalf("Unable to retrieve Gmail client: %v", err)
 	}
 
-	applications, err := getApplications(srv, user)
-	if err != nil {
-		log.Fatalf("Unable to get applications: %v", err)
-	}
-	
-	// Print out each application's subject and date
-    for _, msg := range applications.Messages {
-        msgDetail, err := srv.Users.Messages.Get(user, msg.Id).Format("full").Do()
-        if err != nil {
-            fmt.Printf("Could not fetch message %s: %v\n", msg.Id, err)
-            continue
-        }
-        var subject string
-        for _, header := range msgDetail.Payload.Headers {
-            if header.Name == "Subject" {
-                subject = header.Value
-                break
-            }
-        }
-        date := msgDetail.InternalDate / 1000 // milliseconds to seconds
-        fmt.Printf("Subject: %s | Date: %v | ID: %s\n", subject, date, msg.Id)
-    }
+	getApplications(srv, user)
 }
 
