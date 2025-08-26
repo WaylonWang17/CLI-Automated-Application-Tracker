@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/jackc/pgx/v5"
+
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
@@ -16,8 +18,23 @@ import (
 
 var user = "me"
 
+func getApplications(srv *gmail.Service, user string, conn *pgx.Conn, ctx context.Context) error {
+	_, err := conn.Exec(ctx, `
+		CREATE TABLE IF NOT EXISTS applications (
+			id SERIAL PRIMARY KEY,
+			subject TEXT,
+			sender TEXT,
+			date TEXT,
+			snippet TEXT,
+		)
+	`)
+	_, err = conn.Exec(ctx, `
+		ALTER TABLE applications ADD COLUMN IF NOT EXISTS total_applications int;
+	`)
+	if err != nil {
+		fmt.Printf("Could not create table! %v\n", err)
+	}
 
-func getApplications(srv *gmail.Service, user string) error {
 	pageToken := ""
 	query := `after:2024/8/01 ("thank you for applying" OR "we received your application" OR "application submitted" OR "thank you for your interest" OR "we have received your application" OR "your application has been received" OR "we appreciate your interest" OR "application confirmation" OR "we have received your resume" OR "your application is being reviewed" OR "we are reviewing your application" OR "we have your application" OR "your application has been submitted" OR "thank you for your application" OR "we have received your job application") -in:chats -is:sent`
 	includeSpamTrash := false
@@ -57,6 +74,12 @@ func getApplications(srv *gmail.Service, user string) error {
 
 			// Print snippet (short preview of the message)
 			fmt.Printf("Snippet: %s\n", msgDetail.Snippet)
+			_, err = conn.Exec(ctx, `
+				INSERT INTO applications (subject, sender, date, snippet) VALUES ($1, $2, $3, $4)
+			`, subject, from, date, msgDetail.Snippet)
+			if err != nil {
+				return fmt.Errorf("insert application: %w", err)
+			}
 			count++
 		}
 
@@ -66,6 +89,15 @@ func getApplications(srv *gmail.Service, user string) error {
 		pageToken = res.NextPageToken
 	}
 	fmt.Printf("📬 Total job-related emails since Dec 1, 2024: %d\n", count)
+
+	// After all inserts, update total_applications for all rows
+	_, err = conn.Exec(ctx, `
+		UPDATE applications SET total_applications = $1
+	`, count)
+	if err != nil {
+		fmt.Printf("❌ Failed to update total_applications: %v\n", err)
+	}
+
 	return nil
 }
 
@@ -143,6 +175,11 @@ func main() {
 		log.Fatalf("Unable to retrieve Gmail client: %v", err)
 	}
 
-	getApplications(srv, user)
-}
+	conn, err := pgx.Connect(ctx, "postgres://postgres:postgres@localhost:5432/postgres")
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v", err)
+	}
+	defer conn.Close(ctx)
 
+	getApplications(srv, user, conn, ctx)
+}
