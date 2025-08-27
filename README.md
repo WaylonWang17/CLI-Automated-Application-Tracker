@@ -27,35 +27,35 @@ Gmail API credentials (OAuth2)
 
 1. Clone the repository
 
-git clone https://github.com/<your-username>/CLI-Automated-Application-Tracker.git
-cd CLI-Automated-Application-Tracker
+   git clone https://github.com/<your-username>/CLI-Automated-Application-Tracker.git
+   cd CLI-Automated-Application-Tracker
 
 
 2. Install dependencies
 
-go mod tidy
+   go mod tidy
 
 
 3. Set up PostgreSQL
    
-Create a database and update your .env:
-DATABASE_URL=postgres://username:password@localhost:5432/applications
+   Create a database and update your .env:
+   DATABASE_URL=postgres://username:password@localhost:5432/applications
 
 
 4. Enable Gmail API
 
-Go to Google Cloud Console
-Create OAuth2 credentials
-Download credentials.json and place it in your project root
+   Go to Google Cloud Console
+   Create OAuth2 credentials
+   Download credentials.json and place it in your project root
 
 5. Run the scraper
    
-go run client.go
+   go run client.go
 
 
 6. Visualize results
    
-You can query via psql or plug into Grafana / pgAdmin.
+   You can query via psql or plug into Grafana / pgAdmin.
 
 # Contributing
 
