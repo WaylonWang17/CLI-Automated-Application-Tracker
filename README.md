@@ -3,13 +3,13 @@
 The CLI-Automated-Application-Tracker is a command-line tool that automatically scrapes your Gmail inbox for job and internship applications, stores them in a PostgreSQL database, and lets you visualize the results for better tracking of your applications.
 This project helps you keep an organized, queryable record of where you’ve applied, so you don’t lose track of your progress.
 
-#Features
+# Features
 
 🔍 Scrape Gmail: Automatically detect job application confirmation emails
 🗄 Database Storage: Save results in a PostgreSQL-hosted database
 📊 Visualization: Query and visualize your application history
 
-#Example Visualizations
+# Example Visualizations
 
 ⚡ Fast & Automated: No more manual spreadsheets or sticky notes
 Example visualization #1:
@@ -18,12 +18,12 @@ Example visualization #1:
 Example Visualization #2:
 <img width="1513" height="1033" alt="image" src="https://github.com/user-attachments/assets/870ab181-9ead-4dbe-9087-733100a17d0a" />
 
-#Requirements
+# Requirements
 Go (backend scraper logic)
 PostgreSQL (local or hosted)
 Gmail API credentials (OAuth2)
 
-#Setup
+# Setup
 
 1. Clone the repository
 
@@ -55,7 +55,7 @@ go run main.go scrape
    
 You can query via psql or plug into Grafana / pgAdmin.
 
-#Contributing
+# Contributing
 
 Contributions are welcome! 🎉
 Here’s how you can help:
@@ -67,12 +67,11 @@ Push to your branch (git push origin feature/my-feature)
 Open a Pull Request
 If you’re not sure where to start, check the Issues tab for open tasks or feature requests.
 
-#License
+# License
 
 This project is licensed under the MIT License. See the LICENSE
  file for details.
 
-#Code of Conduct
+# Code of Conduct
 
-Please be respectful when contributing. By participating in this project, you agree to abide by the Contributor Covenant Code of Conduct
-.
+Please be respectful when contributing. By participating in this project, you agree to abide by the Contributor Covenant Code of Conduct.
