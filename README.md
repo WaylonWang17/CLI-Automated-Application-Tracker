@@ -5,9 +5,9 @@ This project helps you keep an organized, queryable record of where you’ve app
 
 # Features
 
-🔍 Scrape Gmail: Automatically detect job application confirmation emails\n
-🗄 Database Storage: Save results in a PostgreSQL-hosted database\n
-📊 Visualization: Query and visualize your application history\n
+🔍 Scrape Gmail: Automatically detect job application confirmation emails
+🗄 Database Storage: Save results in a PostgreSQL-hosted database
+📊 Visualization: Query and visualize your application history
 
 # Example Visualizations
 
