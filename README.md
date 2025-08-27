@@ -5,9 +5,9 @@ This project helps you keep an organized, queryable record of where you’ve app
 
 # Features
 
-🔍 Scrape Gmail: Automatically detect job application confirmation emails
-🗄 Database Storage: Save results in a PostgreSQL-hosted database
-📊 Visualization: Query and visualize your application history
+🔍 Scrape Gmail: Automatically detect job application confirmation emails\n
+🗄 Database Storage: Save results in a PostgreSQL-hosted database\n
+📊 Visualization: Query and visualize your application history\n
 
 # Example Visualizations
 
@@ -47,11 +47,13 @@ DATABASE_URL=postgres://username:password@localhost:5432/applications
 Go to Google Cloud Console
 Create OAuth2 credentials
 Download credentials.json and place it in your project root
-Run the scraper
-go run main.go scrape
+
+5. Run the scraper
+   
+go run client.go
 
 
-5. Visualize results
+6. Visualize results
    
 You can query via psql or plug into Grafana / pgAdmin.
 
