@@ -1,6 +1,6 @@
 # CLI-Automated-Application-Tracker
 
-The CLI-Automated-Application-Tracker is a command-line tool that automatically scrapes your Gmail inbox for job and internship applications, stores them in a PostgreSQL database, and lets you visualize the results for better tracking of your applications.
+The CLI-Automated-Application-Tracker is a command-line tool that automatically scrapes your Gmail inbox for job and internship applications, stores them in a PostgreSQL database, and lets you visualize the results for better tracking of your applications. (LOCAL DEPLOYMENT ONLY)
 This project helps you keep an organized, queryable record of where you’ve applied, so you don’t lose track of your progress.
 
 # Features
